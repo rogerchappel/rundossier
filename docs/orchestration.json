@@ -1,0 +1,15 @@
+{
+  "name": "rundossier",
+  "mode": "local-first-cli",
+  "commands": [
+    { "name": "init", "writes": [".rundossier/config.json"] },
+    { "name": "run", "writes": [".rundossier/state.json"], "captures": ["command", "exitCode", "durationMs", "stdoutSnippet", "stderrSnippet", "gitSummary", "allowlistedEnv"] },
+    { "name": "collect", "writes": [".rundossier/state.json"], "captures": ["fileHashes", "artifactHashes"] },
+    { "name": "report", "writes": [".rundossier/out/dossier.md", ".rundossier/out/dossier.json", ".rundossier/out/dossier.html"] }
+  ],
+  "privacy": {
+    "network": false,
+    "envCapture": "allowlist-only",
+    "redaction": "default-plus-configurable"
+  }
+}
