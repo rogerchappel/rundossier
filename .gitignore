@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.rundossier/
+coverage/
+*.tgz
+.DS_Store
