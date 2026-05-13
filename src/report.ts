@@ -3,16 +3,25 @@ import path from "node:path";
 import { loadConfig, loadState } from "./fs.js";
 import { redactText } from "./redact.js";
 import type { DossierState } from "./types.js";
+import { summarizeState } from "./summary.js";
 
 function fence(value: string): string { return value ? `\n\`\`\`\n${value}\n\`\`\`\n` : " _empty_\n"; }
 function escapeHtml(value: string): string { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"); }
 
 export function renderMarkdown(state: DossierState): string {
+  const summary = summarizeState(state);
   const lines = [
     "# Run Dossier",
     "",
     `Generated: ${state.updatedAt}`,
     `Project: ${state.projectRoot}`,
+    "",
+    "## Summary",
+    "",
+    `- Commands: ${summary.commands}`,
+    `- Failed commands: ${summary.failedCommands}`,
+    `- Files: ${summary.files}`,
+    `- Artifacts: ${summary.artifacts}`,
     "",
     "## Commands",
     ""
