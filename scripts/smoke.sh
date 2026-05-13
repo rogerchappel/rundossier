@@ -5,10 +5,10 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 cp -R "$ROOT/fixtures/sample-project/." "$TMP/"
 cd "$TMP"
-node "$ROOT/dist/cli.js" init
-node "$ROOT/dist/cli.js" run -- node tests/pass.js
-node "$ROOT/dist/cli.js" collect
-node "$ROOT/dist/cli.js" report
+node "$ROOT/dist/src/cli.js" init
+node "$ROOT/dist/src/cli.js" run -- node tests/pass.js
+node "$ROOT/dist/src/cli.js" collect
+node "$ROOT/dist/src/cli.js" report
 for file in .rundossier/out/dossier.md .rundossier/out/dossier.json .rundossier/out/dossier.html; do
   test -s "$file"
 done

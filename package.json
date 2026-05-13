@@ -4,11 +4,11 @@
   "description": "Local-first run evidence packets for agent and developer handoffs.",
   "type": "module",
   "bin": {
-    "rundossier": "./dist/cli.js"
+    "rundossier": "./dist/src/cli.js"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/src/index.js",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/src/index.js"
   },
   "files": [
     "dist",
