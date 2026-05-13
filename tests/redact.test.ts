@@ -16,3 +16,9 @@ test("captures only allowlisted environment variables", () => {
 test("tails long logs", () => {
   assert.equal(tailLines("a\nb\nc", 2), "[... 1 earlier lines omitted ...]\nb\nc");
 });
+
+
+test("redaction preserves JSON string structure", () => {
+  const json = JSON.stringify({ stdout: "token=super-secret\n" });
+  assert.doesNotThrow(() => JSON.parse(redactText(json, DEFAULT_CONFIG.redactions)));
+});
