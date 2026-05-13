@@ -1,7 +1,8 @@
 import type { RedactionRule, RunDossierConfig } from "./types.js";
 
 export function compileRule(rule: RedactionRule): RegExp {
-  return new RegExp(rule.pattern, "g");
+  const flags = rule.flags?.includes("g") ? rule.flags : `${rule.flags ?? ""}g`;
+  return new RegExp(rule.pattern, flags);
 }
 
 export function redactText(input: string, rules: RedactionRule[]): string {

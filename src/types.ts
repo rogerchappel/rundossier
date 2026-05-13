@@ -3,6 +3,7 @@ export type OutputFormat = "markdown" | "json" | "html";
 export interface RedactionRule {
   name: string;
   pattern: string;
+  flags?: string;
   replacement?: string;
 }
 

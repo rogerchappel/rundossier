@@ -13,8 +13,8 @@ export const DEFAULT_CONFIG: RunDossierConfig = {
   },
   redactions: [
     { name: "github-token", pattern: "gh[pousr]_[A-Za-z0-9_]{20,}", replacement: "[REDACTED:github-token]" },
-    { name: "generic-secret-assignment", pattern: "(?i)(api[_-]?key|token|secret|password)=([^\\s]+)", replacement: "$1=[REDACTED]" },
-    { name: "authorization-header", pattern: "(?i)authorization:\\s*bearer\\s+[^\\s]+", replacement: "authorization: bearer [REDACTED]" },
+    { name: "generic-secret-assignment", pattern: "(api[_-]?key|token|secret|password)=([^\\s]+)", flags: "gi", replacement: "$1=[REDACTED]" },
+    { name: "authorization-header", pattern: "authorization:\\s*bearer\\s+[^\\s]+", flags: "gi", replacement: "authorization: bearer [REDACTED]" },
     { name: "private-key", pattern: "-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----", replacement: "[REDACTED:private-key]" }
   ],
   outputDir: ".rundossier/out",
