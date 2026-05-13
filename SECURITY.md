@@ -1,58 +1,16 @@
 # Security Policy
 
-## Supported Versions
+`rundossier` is local-first evidence tooling. It should never require credentials for normal use and should never upload captured data.
 
-Replace this section with the supported versions for `../rundossier`.
+## Secret handling
 
-Example:
+- Environment capture is allowlist-only.
+- Default redaction covers common token assignments, GitHub tokens, bearer headers, and private keys.
+- Output snippets are line-limited.
+- Generated dossiers can still contain project-sensitive paths or filenames, so review before sharing publicly.
 
-```md
-| Version | Supported |
-| --- | --- |
-| .x | Yes |
-| < .0 | No |
-```
+## Reporting vulnerabilities
 
-If the project does not publish versioned releases yet, say that clearly.
+Please open a GitHub security advisory or contact the maintainer privately if you find a redaction bypass, unsafe file capture default, or command execution issue.
 
-## Reporting a Vulnerability
-
-Please do not report suspected vulnerabilities in public issues, pull requests, or discussions.
-
-Ask maintainers for the private security reporting path before sharing details.
-
-If no private reporting path exists yet, ask maintainers through public project channels for a private reporting path. Do not include exploit details, secrets, personal data, or sensitive technical details in public messages.
-
-## What to Include
-
-When a private reporting path is available, include:
-
-- A clear description of the issue.
-- Affected versions, files, packages, workflows, or configuration.
-- Steps to reproduce, proof of concept, or attack scenario when safe to share.
-- Potential impact.
-- Suggested mitigation, if known.
-
-## Response Expectations
-
-Maintainers review good-faith reports as capacity allows.
-
-Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `../rundossier` explicitly provides them.
-
-## Scope
-
-In scope:
-
-- Vulnerabilities in ../rundossier.
-- Insecure default configuration shipped by this project.
-- CI, release, or dependency guidance maintained by this project.
-
-Out of scope:
-
-- General support requests.
-- Requests for guaranteed maintenance timelines.
-- Issues in unrelated downstream projects.
-
-## Disclosure
-
-Coordinate disclosure with maintainers before publishing vulnerability details.
+Include reproduction steps and whether the issue affects generated reports, `.rundossier/state.json`, or both.
