@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { DEFAULT_CONFIG, CONFIG_PATH, RUNDOSSIER_DIR, STATE_PATH } from "./defaults.js";
 import type { DossierState, RunDossierConfig } from "./types.js";
+import { validateConfig } from "./validate.js";
 
 export async function pathExists(filePath: string): Promise<boolean> {
   try { await fs.access(filePath); return true; } catch { return false; }
@@ -31,13 +32,15 @@ export async function loadConfig(root: string): Promise<RunDossierConfig> {
   const configFile = path.join(root, CONFIG_PATH);
   if (!(await pathExists(configFile))) await initProject(root);
   const userConfig = await readJson<Partial<RunDossierConfig>>(configFile);
-  return {
+  const config = {
     ...DEFAULT_CONFIG,
     ...userConfig,
     collect: { ...DEFAULT_CONFIG.collect, ...userConfig.collect },
     redactions: userConfig.redactions ?? DEFAULT_CONFIG.redactions,
     envAllowlist: userConfig.envAllowlist ?? DEFAULT_CONFIG.envAllowlist
   };
+  validateConfig(config);
+  return config;
 }
 
 export async function loadState(root: string): Promise<DossierState> {
