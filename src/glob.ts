@@ -12,7 +12,11 @@ export function globToRegExp(pattern: string): RegExp {
   for (let i = 0; i < pattern.length; i += 1) {
     const char = pattern[i];
     const next = pattern[i + 1];
-    if (char === "*" && next === "*") { source += ".*"; i += 1; }
+    if (char === "*" && next === "*") {
+      const after = pattern[i + 2];
+      if (after === "/") { source += "(?:.*/)?"; i += 2; }
+      else { source += ".*"; i += 1; }
+    }
     else if (char === "*") source += "[^/]*";
     else if (char === "?") source += "[^/]";
     else if (char === "{") {
