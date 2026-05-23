@@ -93,6 +93,14 @@ rundossier report
 
 The dossier becomes a compact handoff packet for PR review, agent continuation, or CI/local parity checks.
 
+## Limitations
+
+- Generated dossiers record **local run data only** — no distributed or multi-agent correlation
+- Secret redaction uses pattern matching, not semantic analysis — unusual secrets outside the default patterns may leak into snippets
+- HTML output is a standalone template with no external CDN dependencies, but lacks interactive filtering or search
+- Git facts rely on `git` being on PATH and the working directory being a git repository
+- No built-in encryption or access control on generated dossiers — treat them like any other local file
+
 ## Development
 
 ```bash
