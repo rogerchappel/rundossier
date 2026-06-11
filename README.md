@@ -24,6 +24,7 @@ node dist/cli.js --help
 rundossier init
 rundossier run -- npm test
 rundossier collect
+rundossier status
 rundossier report
 open .rundossier/out/dossier.html
 ```
@@ -54,6 +55,10 @@ Runs a command and records:
 ### `rundossier collect`
 
 Hashes configured source files and artifacts with SHA-256. Defaults cover common docs, source, tests, `dist`, `coverage`, and `test-results` paths.
+
+### `rundossier status`
+
+Prints command, failure, duration, file, artifact, and dirty-git summary counts. It exits non-zero when any captured command failed, which makes it useful in local automation.
 
 ### `rundossier report`
 
