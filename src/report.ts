@@ -20,8 +20,10 @@ export function renderMarkdown(state: DossierState): string {
     "",
     `- Commands: ${summary.commands}`,
     `- Failed commands: ${summary.failedCommands}`,
+    `- Total duration: ${summary.totalDurationMs}ms`,
     `- Files: ${summary.files}`,
     `- Artifacts: ${summary.artifacts}`,
+    `- Dirty git snapshots: ${summary.dirtyCommands}`,
     "",
     "## Commands",
     ""
