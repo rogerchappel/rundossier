@@ -1,9 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
+import { promisify } from "node:util";
 import { main } from "../src/cli.js";
+
+const execFileAsync = promisify(execFile);
 
 test("CLI help exits successfully", async () => {
   assert.equal(await main(["--help"], process.cwd()), 0);
@@ -28,4 +32,29 @@ test("CLI status returns non-zero when failures are recorded", async () => {
   }));
 
   assert.equal(await main(["status"], root), 1);
+});
+
+test("built CLI runs through an aliased project path", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "rundossier-cli-"));
+  const project = path.join(root, "project");
+  const alias = path.join(root, "project-alias");
+  const cli = path.resolve("dist/src/cli.js");
+  const cliAlias = path.join(alias, path.relative(process.cwd(), cli));
+
+  await mkdir(project);
+  await writeFile(path.join(project, "package.json"), JSON.stringify({ name: "alias-fixture" }));
+  await symlink(process.cwd(), alias, "dir");
+
+  const help = await execFileAsync(process.execPath, [cliAlias, "--help"]);
+  assert.match(help.stdout, /Usage:\s+rundossier init/);
+
+  await execFileAsync(process.execPath, [cliAlias, "init"], { cwd: project });
+  await execFileAsync(process.execPath, [cliAlias, "collect"], { cwd: project });
+  await execFileAsync(process.execPath, [cliAlias, "report"], { cwd: project });
+
+  assert.match(
+    await import("node:fs/promises").then(({ readFile }) =>
+      readFile(path.join(project, ".rundossier/out/dossier.md"), "utf8")),
+    /# Run Dossier/
+  );
 });
