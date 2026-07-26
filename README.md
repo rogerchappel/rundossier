@@ -52,6 +52,11 @@ Runs a command and records:
 - allowlisted environment variables only
 - git HEAD, branch, dirty flag, and status summary
 
+If the command cannot be launched (for example, the executable does not
+exist), `rundossier` still records the attempt with exit code `1` and a
+redacted launch diagnostic. The failed attempt is then included by `status`
+and `report`, just like a command that launched and exited unsuccessfully.
+
 ### `rundossier collect`
 
 Hashes configured source files and artifacts with SHA-256. Defaults cover common docs, source, tests, `dist`, `coverage`, and `test-results` paths.
