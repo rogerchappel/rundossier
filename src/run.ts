@@ -16,8 +16,12 @@ export async function runCommand(root: string, command: string[]): Promise<Comma
   const child = spawn(command[0]!, command.slice(1), { cwd: root, env: process.env, shell: false });
   child.stdout.on("data", (chunk) => { const text = String(chunk); stdout += text; process.stdout.write(text); });
   child.stderr.on("data", (chunk) => { const text = String(chunk); stderr += text; process.stderr.write(text); });
-  const exitCode = await new Promise<number | null>((resolve, reject) => {
-    child.on("error", reject);
+  const exitCode = await new Promise<number | null>((resolve) => {
+    child.on("error", (error: NodeJS.ErrnoException) => {
+      const diagnostic = `Failed to launch: ${error.message}`;
+      stderr += stderr.endsWith("\n") || stderr.length === 0 ? diagnostic : `\n${diagnostic}`;
+      resolve(1);
+    });
     child.on("close", resolve);
   });
   const ended = Date.now();
