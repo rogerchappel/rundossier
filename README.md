@@ -6,17 +6,16 @@ It is built for the moment after “it passed locally” when a reviewer, mainta
 
 ## Install
 
-```bash
-npm install -g rundossier
-```
-
-Or run from a checkout:
+Until the first npm release is published, install and run from a checkout:
 
 ```bash
 npm install
 npm run build
 node dist/src/cli.js --help
 ```
+
+The tagged release workflow publishes the verified package to npm. After the
+first release, the global install command will be `npm install -g rundossier`.
 
 ## Quick start
 
