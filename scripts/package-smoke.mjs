@@ -43,6 +43,14 @@ try {
     encoding: "utf8",
   });
   const installedCli = join(installDirectory, "node_modules", ".bin", "rundossier");
+  const installedManifest = JSON.parse(
+    readFileSync(join(installDirectory, "node_modules", "rundossier", "package.json")),
+  );
+  assert.equal(
+    installedManifest.bin?.rundossier,
+    cliPath,
+    "published package manifest does not expose the rundossier CLI",
+  );
   const installedHelp = execFileSync(installedCli, ["--help"], {
     encoding: "utf8",
   });
