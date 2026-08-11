@@ -5,7 +5,32 @@ import { redactText } from "./redact.js";
 import type { DossierState } from "./types.js";
 import { summarizeState } from "./summary.js";
 
-function fence(value: string): string { return value ? `\n\`\`\`\n${value}\n\`\`\`\n` : " _empty_\n"; }
+function longestBacktickRun(value: string): number {
+  return Math.max(0, ...Array.from(value.matchAll(/`+/g), (match) => match[0].length));
+}
+
+function fence(value: string): string {
+  if (!value) return " _empty_\n";
+  const delimiter = "`".repeat(Math.max(3, longestBacktickRun(value) + 1));
+  return `\n${delimiter}\n${value}\n${delimiter}\n`;
+}
+
+function inlineCode(value: string): string {
+  const normalized = value.replaceAll("\r", "\\r").replaceAll("\n", "\\n");
+  const delimiter = "`".repeat(Math.max(1, longestBacktickRun(normalized) + 1));
+  const padding = normalized.startsWith("`") || normalized.endsWith("`") ? " " : "";
+  return `${delimiter}${padding}${normalized}${padding}${delimiter}`;
+}
+
+function tableCell(value: string): string {
+  return value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("|", "\\|")
+    .replaceAll("`", "\\`")
+    .replaceAll("\r\n", "<br>")
+    .replaceAll("\r", "<br>")
+    .replaceAll("\n", "<br>");
+}
 function escapeHtml(value: string): string { return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"); }
 
 export function renderMarkdown(state: DossierState): string {
@@ -29,10 +54,10 @@ export function renderMarkdown(state: DossierState): string {
     ""
   ];
   for (const command of state.commands) {
-    lines.push(`### ${command.id}: \`${command.command.join(" ")}\``, "", `- Exit: ${command.exitCode}`, `- Duration: ${command.durationMs}ms`, `- Git: ${command.git.branch ?? "unknown"}@${command.git.head ?? "unknown"}${command.git.dirty ? " (dirty)" : ""}`, "", "**stdout**", fence(command.stdout), "**stderr**", fence(command.stderr));
+    lines.push(`### ${command.id}: ${inlineCode(command.command.join(" "))}`, "", `- Exit: ${command.exitCode}`, `- Duration: ${command.durationMs}ms`, `- Git: ${command.git.branch ?? "unknown"}@${command.git.head ?? "unknown"}${command.git.dirty ? " (dirty)" : ""}`, "", "**stdout**", fence(command.stdout), "**stderr**", fence(command.stderr));
   }
   lines.push("## Files", "", "| Path | Kind | Size | SHA-256 |", "| --- | --- | ---: | --- |");
-  for (const file of state.files) lines.push(`| ${file.path} | ${file.kind} | ${file.size} | \`${file.sha256}\` |`);
+  for (const file of state.files) lines.push(`| ${tableCell(file.path)} | ${file.kind} | ${file.size} | \`${file.sha256}\` |`);
   lines.push("");
   return lines.join("\n");
 }
