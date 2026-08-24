@@ -79,9 +79,19 @@ Edit `.rundossier/config.json`:
     "files": ["package.json", "src/**/*.{ts,js}"],
     "artifacts": ["coverage/**", "test-results/**"]
   },
+  "redactions": [
+    { "name": "service-key", "pattern": "(SERVICE_KEY=)[^\\s]+", "replacement": "$1[REDACTED]" }
+  ],
   "snippetLines": 80
 }
 ```
+
+Redaction patterns use JavaScript regular-expression syntax. Replacement
+strings use JavaScript replacement tokens such as `$1` for a capture group;
+quotes, backslashes, and newlines are allowed. Redactions are applied to each
+evidence string before reports are rendered and JSON is serialized, so the
+JSON, Markdown, and HTML outputs contain the same redacted values without a
+replacement being able to corrupt `dossier.json` structure.
 
 ## Safety model
 
