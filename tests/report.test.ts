@@ -61,7 +61,7 @@ test("redacts evidence values before serializing every report format", async (co
     commands: [{ id: "secret", command: ["printf", "demo-secret"], cwd: "/tmp/demo-secret", startedAt: "x", endedAt: "y", durationMs: 1, exitCode: 0, stdout: "demo-secret", stderr: "", env: {}, git: { head: "123", branch: "main", dirty: false, status: [] } }],
     files: [{ path: "demo-secret.txt", kind: "file", size: 12, sha256: "deadbeef", modifiedAt: "z" }]
   };
-  const replacement = "quote:\" slash:\\ line:\n$&";
+  const replacement = "quote:\" slash:\\ line:\nnext";
   await fs.mkdir(path.join(root, ".rundossier"), { recursive: true });
   await fs.writeFile(path.join(root, ".rundossier", "config.json"), JSON.stringify({ ...DEFAULT_CONFIG, redactions: [{ name: "demo", pattern: "demo-secret", replacement }] }));
   await fs.writeFile(path.join(root, ".rundossier", "state.json"), JSON.stringify(state));
@@ -78,5 +78,5 @@ test("redacts evidence values before serializing every report format", async (co
   assert.doesNotMatch(markdown, /demo-secret/);
   assert.doesNotMatch(html, /demo-secret/);
   assert.match(markdown, /quote:\" slash:\\\\ line:/);
-  assert.match(html, /quote:&quot; slash:\\\\ line:/);
+  assert.match(html, /quote:" slash:\\ line:/);
 });

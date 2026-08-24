@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { loadConfig, loadState } from "./fs.js";
-import { redactText } from "./redact.js";
+import { redactStrings } from "./redact.js";
 import type { DossierState } from "./types.js";
 import { summarizeState } from "./summary.js";
 
@@ -71,8 +71,9 @@ export async function writeReports(root: string): Promise<string[]> {
   const state = await loadState(root);
   const outDir = path.resolve(root, config.outputDir);
   await fs.mkdir(outDir, { recursive: true });
-  const json = redactText(`${JSON.stringify(state, null, 2)}\n`, config.redactions);
-  const markdown = renderMarkdown(JSON.parse(json) as DossierState);
+  const redactedState = redactStrings(state, config.redactions);
+  const json = `${JSON.stringify(redactedState, null, 2)}\n`;
+  const markdown = renderMarkdown(redactedState);
   const html = renderHtml(markdown);
   const outputs = [
     ["dossier.json", json],
