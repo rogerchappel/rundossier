@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const workflow = readFileSync(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8');
+const ciWorkflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
+
+assert.match(ciWorkflow, /npm run release:workflow(?:\s|$)/,
+  'general CI must validate the release workflow contract for every pull request');
 
 const job = (name, nextName) => {
   const start = workflow.indexOf(`  ${name}:\n`);
