@@ -60,6 +60,12 @@ and `report`, just like a command that launched and exited unsuccessfully.
 
 Hashes configured source files and artifacts with SHA-256. Defaults cover common docs, source, tests, `dist`, `coverage`, and `test-results` paths.
 
+State updates from `run` and `collect` are serialized with a project-local lock,
+so overlapping processes preserve every completed command and file record. The
+state file is atomically replaced after each update. Lock waits time out after
+10 seconds, and lock files older than 30 seconds are recovered after an
+interrupted writer.
+
 ### `rundossier status`
 
 Prints command, failure, duration, file, artifact, and dirty-git summary counts. It exits non-zero when any captured command failed, which makes it useful in local automation.
