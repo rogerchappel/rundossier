@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import crypto from "node:crypto";
-import { loadConfig, loadState, saveState } from "./fs.js";
+import { loadConfig, updateState } from "./fs.js";
 import { getGitSummary } from "./git.js";
 import { redactEnv, redactText, tailLines } from "./redact.js";
 import type { CommandEvidence } from "./types.js";
@@ -8,7 +8,6 @@ import type { CommandEvidence } from "./types.js";
 export async function runCommand(root: string, command: string[]): Promise<CommandEvidence> {
   if (command.length === 0) throw new Error("No command provided. Use: rundossier run -- <cmd>");
   const config = await loadConfig(root);
-  const state = await loadState(root);
   const started = Date.now();
   const startedAt = new Date(started).toISOString();
   let stdout = "";
@@ -38,7 +37,6 @@ export async function runCommand(root: string, command: string[]): Promise<Comma
     env: redactEnv(process.env as Record<string, string>, config),
     git: await getGitSummary(root)
   };
-  state.commands.push(evidence);
-  await saveState(root, state);
+  await updateState(root, (state) => { state.commands.push(evidence); });
   return evidence;
 }

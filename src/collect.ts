@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadConfig, loadState, saveState } from "./fs.js";
+import { loadConfig, updateState } from "./fs.js";
 import { matchGlobs } from "./glob.js";
 import type { FileEvidence } from "./types.js";
 
@@ -11,7 +11,6 @@ async function hashFile(filePath: string): Promise<string> {
 
 export async function collectFiles(root: string): Promise<FileEvidence[]> {
   const config = await loadConfig(root);
-  const state = await loadState(root);
   const fileMatches = await matchGlobs(root, config.collect.files);
   const artifactMatches = await matchGlobs(root, config.collect.artifacts);
   const artifactSet = new Set(artifactMatches);
@@ -28,7 +27,7 @@ export async function collectFiles(root: string): Promise<FileEvidence[]> {
       modifiedAt: stat.mtime.toISOString()
     });
   }
-  state.files = evidence.sort((a, b) => a.path.localeCompare(b.path));
-  await saveState(root, state);
-  return state.files;
+  const files = evidence.sort((a, b) => a.path.localeCompare(b.path));
+  await updateState(root, (state) => { state.files = files; });
+  return files;
 }
