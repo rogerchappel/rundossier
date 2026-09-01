@@ -42,13 +42,20 @@ export async function initProject(root: string): Promise<string> {
 export async function loadConfig(root: string): Promise<RunDossierConfig> {
   const configFile = path.join(root, CONFIG_PATH);
   if (!(await pathExists(configFile))) await initProject(root);
-  const userConfig = await readJson<Partial<RunDossierConfig>>(configFile);
+  const userConfig = await readJson<unknown>(configFile);
+  if (typeof userConfig !== "object" || userConfig === null || Array.isArray(userConfig)) {
+    throw new Error("config must be an object");
+  }
+  const partial = userConfig as Partial<RunDossierConfig>;
   const config = {
     ...DEFAULT_CONFIG,
-    ...userConfig,
-    collect: { ...DEFAULT_CONFIG.collect, ...userConfig.collect },
-    redactions: userConfig.redactions ?? DEFAULT_CONFIG.redactions,
-    envAllowlist: userConfig.envAllowlist ?? DEFAULT_CONFIG.envAllowlist
+    ...partial,
+    collect: partial.collect === undefined ? DEFAULT_CONFIG.collect :
+      typeof partial.collect === "object" && partial.collect !== null && !Array.isArray(partial.collect)
+        ? { ...DEFAULT_CONFIG.collect, ...partial.collect }
+        : partial.collect,
+    redactions: partial.redactions ?? DEFAULT_CONFIG.redactions,
+    envAllowlist: partial.envAllowlist ?? DEFAULT_CONFIG.envAllowlist
   };
   validateConfig(config);
   return config;
