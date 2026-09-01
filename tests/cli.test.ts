@@ -17,6 +17,33 @@ test("CLI rejects unknown commands", async () => {
   assert.equal(await main(["wat"], process.cwd()), 2);
 });
 
+test("CLI rejects malformed config fields without runtime TypeErrors", async () => {
+  const cases: Array<[unknown, RegExp]> = [
+    [null, /config must be an object/],
+    [{ schemaVersion: 1, collect: null }, /config\.collect must be an object/],
+    [{ schemaVersion: 1, collect: { files: [2] } }, /config\.collect\.files must contain only non-empty strings/],
+    [{ schemaVersion: 1, envAllowlist: [1] }, /config\.envAllowlist must contain only non-empty strings/],
+    [{ schemaVersion: 1, redactions: [null] }, /config\.redactions must contain only objects/],
+    [{ schemaVersion: 1, outputDir: 7 }, /config\.outputDir must be a non-empty string/]
+  ];
+
+  for (const [config, expected] of cases) {
+    const root = await mkdtemp(path.join(tmpdir(), "rundossier-invalid-config-"));
+    await mkdir(path.join(root, ".rundossier"));
+    await writeFile(path.join(root, ".rundossier", "config.json"), JSON.stringify(config));
+    const messages: string[] = [];
+    const originalError = console.error;
+    console.error = (...args: unknown[]) => messages.push(args.map(String).join(" "));
+    try {
+      assert.equal(await main(["collect"], root), 1);
+    } finally {
+      console.error = originalError;
+    }
+    assert.match(messages.join("\n"), expected);
+    assert.doesNotMatch(messages.join("\n"), /TypeError|Cannot read properties/);
+  }
+});
+
 test("CLI status returns non-zero when failures are recorded", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "rundossier-status-"));
   await mkdir(path.join(root, ".rundossier"), { recursive: true });
