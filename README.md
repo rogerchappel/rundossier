@@ -94,16 +94,18 @@ Edit `.rundossier/config.json`:
 
 Redaction patterns use JavaScript regular-expression syntax. Replacement
 strings use JavaScript replacement tokens such as `$1` for a capture group;
-quotes, backslashes, and newlines are allowed. Redactions are applied to each
-evidence string before reports are rendered and JSON is serialized, so the
-JSON, Markdown, and HTML outputs contain the same redacted values without a
-replacement being able to corrupt `dossier.json` structure.
+quotes, backslashes, and newlines are allowed. Redactions are applied once to
+every evidence string—including command argv, paths, output, allowlisted
+environment values, and git metadata—before `.rundossier/state.json` is
+persisted. JSON, Markdown, and HTML reports are also redacted when generated,
+including when they read legacy state, without a replacement being able to
+corrupt JSON structure.
 
 ## Safety model
 
 - Local-first: no telemetry, cloud sync, or network calls.
 - Environment capture is allowlist-only.
-- Logs are redacted before persistence.
+- Every persisted evidence string is redacted before persistence.
 - Git inspection is read-only.
 - You choose whether to share generated dossiers.
 
