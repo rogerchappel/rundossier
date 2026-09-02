@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import crypto from "node:crypto";
 import { loadConfig, updateState } from "./fs.js";
 import { getGitSummary } from "./git.js";
-import { redactEnv, redactText, tailLines } from "./redact.js";
+import { redactStrings, tailLines } from "./redact.js";
 import type { CommandEvidence } from "./types.js";
 
 export async function runCommand(root: string, command: string[]): Promise<CommandEvidence> {
@@ -24,7 +24,10 @@ export async function runCommand(root: string, command: string[]): Promise<Comma
     child.on("close", resolve);
   });
   const ended = Date.now();
-  const evidence: CommandEvidence = {
+  const allowedEnv = Object.fromEntries(
+    config.envAllowlist.flatMap((key) => process.env[key] === undefined ? [] : [[key, process.env[key]!]])
+  );
+  const evidence = redactStrings<CommandEvidence>({
     id: crypto.createHash("sha256").update(`${startedAt}\0${command.join("\0")}`).digest("hex").slice(0, 12),
     command,
     cwd: root,
@@ -32,11 +35,11 @@ export async function runCommand(root: string, command: string[]): Promise<Comma
     endedAt: new Date(ended).toISOString(),
     durationMs: ended - started,
     exitCode,
-    stdout: tailLines(redactText(stdout, config.redactions), config.snippetLines),
-    stderr: tailLines(redactText(stderr, config.redactions), config.snippetLines),
-    env: redactEnv(process.env as Record<string, string>, config),
+    stdout: tailLines(stdout, config.snippetLines),
+    stderr: tailLines(stderr, config.snippetLines),
+    env: allowedEnv,
     git: await getGitSummary(root)
-  };
+  }, config.redactions);
   await updateState(root, (state) => { state.commands.push(evidence); });
   return evidence;
 }

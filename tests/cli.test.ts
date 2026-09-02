@@ -69,7 +69,7 @@ test("CLI records and reports commands that cannot be launched", async () => {
 
   const state = JSON.parse(await readFile(path.join(root, ".rundossier", "state.json"), "utf8"));
   assert.equal(state.commands.length, 1);
-  assert.deepEqual(state.commands[0].command, [missingCommand, "--example"]);
+  assert.deepEqual(state.commands[0].command, ["rundossier-missing-token=[REDACTED]", "--example"]);
   assert.equal(state.commands[0].exitCode, 1);
   assert.match(state.commands[0].startedAt, /^\d{4}-\d{2}-\d{2}T/);
   assert.match(state.commands[0].endedAt, /^\d{4}-\d{2}-\d{2}T/);
@@ -96,11 +96,11 @@ test("CLI redacts configured patterns before persisting command argv", async () 
     redactions: [{ name: "fixture", pattern: secret, replacement: "[REDACTED:fixture]" }]
   }));
 
-  assert.equal(await main(["run", "--", process.execPath, "-e", "process.stdout.write('ok')", `--label=${secret}`], root), 0);
+  assert.equal(await main(["run", "--", process.execPath, "-e", "process.stdout.write('ok')", "--", `--label=${secret}`], root), 0);
 
   const stateText = await readFile(path.join(root, ".rundossier", "state.json"), "utf8");
   const state = JSON.parse(stateText);
-  assert.deepEqual(state.commands[0].command.slice(0, 4), [process.execPath, "-e", "process.stdout.write('ok')", "--label=[REDACTED:fixture]"]);
+  assert.deepEqual(state.commands[0].command, [process.execPath, "-e", "process.stdout.write('ok')", "--", "--label=[REDACTED:fixture]"]);
   assert.doesNotMatch(stateText, new RegExp(secret));
 
   assert.equal(await main(["report"], root), 0);
