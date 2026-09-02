@@ -87,6 +87,30 @@ test("CLI records and reports commands that cannot be launched", async () => {
   assert.match(report, /Failed to launch/);
 });
 
+test("CLI redacts configured patterns before persisting command argv", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "rundossier-command-redaction-"));
+  const secret = "fixture-sensitive-value";
+  await mkdir(path.join(root, ".rundossier"), { recursive: true });
+  await writeFile(path.join(root, ".rundossier", "config.json"), JSON.stringify({
+    schemaVersion: 1,
+    redactions: [{ name: "fixture", pattern: secret, replacement: "[REDACTED:fixture]" }]
+  }));
+
+  assert.equal(await main(["run", "--", process.execPath, "-e", "process.stdout.write('ok')", `--label=${secret}`], root), 0);
+
+  const stateText = await readFile(path.join(root, ".rundossier", "state.json"), "utf8");
+  const state = JSON.parse(stateText);
+  assert.deepEqual(state.commands[0].command.slice(0, 4), [process.execPath, "-e", "process.stdout.write('ok')", "--label=[REDACTED:fixture]"]);
+  assert.doesNotMatch(stateText, new RegExp(secret));
+
+  assert.equal(await main(["report"], root), 0);
+  for (const name of ["dossier.json", "dossier.md", "dossier.html"]) {
+    const report = await readFile(path.join(root, ".rundossier", "out", name), "utf8");
+    assert.doesNotMatch(report, new RegExp(secret));
+    assert.match(report, /REDACTED:fixture/);
+  }
+});
+
 test("built CLI runs through an aliased project path", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "rundossier-cli-"));
   const project = path.join(root, "project");
