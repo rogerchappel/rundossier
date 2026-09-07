@@ -51,6 +51,9 @@ Runs a command and records:
 - allowlisted environment variables only
 - git HEAD, branch, dirty flag, and status summary
 
+Stdout and stderr are decoded incrementally as UTF-8, so multibyte Unicode
+characters remain intact even when their bytes arrive in separate stream chunks.
+
 If the command cannot be launched (for example, the executable does not
 exist), `rundossier` still records the attempt with exit code `1` and a
 redacted launch diagnostic. The failed attempt is then included by `status`
