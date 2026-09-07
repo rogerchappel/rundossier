@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import crypto from "node:crypto";
+import { StringDecoder } from "node:string_decoder";
 import { loadConfig, updateState } from "./fs.js";
 import { getGitSummary } from "./git.js";
 import { redactStrings, tailLines } from "./redact.js";
@@ -13,8 +14,28 @@ export async function runCommand(root: string, command: string[]): Promise<Comma
   let stdout = "";
   let stderr = "";
   const child = spawn(command[0]!, command.slice(1), { cwd: root, env: process.env, shell: false });
-  child.stdout.on("data", (chunk) => { const text = String(chunk); stdout += text; process.stdout.write(text); });
-  child.stderr.on("data", (chunk) => { const text = String(chunk); stderr += text; process.stderr.write(text); });
+  const stdoutDecoder = new StringDecoder("utf8");
+  const stderrDecoder = new StringDecoder("utf8");
+  child.stdout.on("data", (chunk: Buffer) => {
+    const text = stdoutDecoder.write(chunk);
+    stdout += text;
+    process.stdout.write(text);
+  });
+  child.stderr.on("data", (chunk: Buffer) => {
+    const text = stderrDecoder.write(chunk);
+    stderr += text;
+    process.stderr.write(text);
+  });
+  child.stdout.on("end", () => {
+    const text = stdoutDecoder.end();
+    stdout += text;
+    process.stdout.write(text);
+  });
+  child.stderr.on("end", () => {
+    const text = stderrDecoder.end();
+    stderr += text;
+    process.stderr.write(text);
+  });
   const exitCode = await new Promise<number | null>((resolve) => {
     child.on("error", (error: NodeJS.ErrnoException) => {
       const diagnostic = `Failed to launch: ${error.message}`;
