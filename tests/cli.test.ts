@@ -111,6 +111,36 @@ test("CLI redacts configured patterns before persisting command argv", async () 
   }
 });
 
+test("CLI preserves UTF-8 characters split across stdout and stderr chunks", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "rundossier-unicode-streams-"));
+  const script = [
+    "const stdout = Buffer.from('stdout 😀\\n')",
+    "const stderr = Buffer.from('stderr café\\n')",
+    "process.stdout.write(stdout.subarray(0, 9))",
+    "process.stderr.write(stderr.subarray(0, 11))",
+    "setTimeout(() => {",
+    "  process.stdout.write(stdout.subarray(9))",
+    "  process.stderr.write(stderr.subarray(11))",
+    "}, 25)"
+  ].join(";");
+
+  assert.equal(await main(["run", "--", process.execPath, "-e", script], root), 0);
+
+  const stateText = await readFile(path.join(root, ".rundossier", "state.json"), "utf8");
+  const state = JSON.parse(stateText);
+  assert.equal(state.commands[0].stdout, "stdout 😀\n");
+  assert.equal(state.commands[0].stderr, "stderr café\n");
+  assert.doesNotMatch(stateText, /�/);
+
+  assert.equal(await main(["report"], root), 0);
+  for (const name of ["dossier.json", "dossier.md", "dossier.html"]) {
+    const report = await readFile(path.join(root, ".rundossier", "out", name), "utf8");
+    assert.match(report, /stdout 😀/);
+    assert.match(report, /stderr café/);
+    assert.doesNotMatch(report, /�/);
+  }
+});
+
 test("built CLI runs through an aliased project path", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "rundossier-cli-"));
   const project = path.join(root, "project");
