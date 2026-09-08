@@ -26,8 +26,9 @@
     "test": "npm run build && node --test dist/tests/*.test.js",
     "smoke": "npm run build && bash scripts/smoke.sh",
     "package:smoke": "npm run build && node scripts/package-smoke.mjs",
+    "ci:workflow": "node scripts/validate-ci-workflow.mjs",
     "release:workflow": "node scripts/validate-release-workflow.mjs",
-    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke && npm run release:workflow"
+    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke && npm run ci:workflow && npm run release:workflow"
   },
   "keywords": [
     "cli",

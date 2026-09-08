@@ -125,11 +125,13 @@ The dossier becomes a compact handoff packet for PR review, agent continuation, 
 
 ## Development
 
+The package supports Node.js 20 and newer. CI runs the complete repository
+verification on Node.js 20 and Node.js 24 so both the minimum and current
+supported release lines stay exercised.
+
 ```bash
 npm install
-npm run check
-npm test
-npm run smoke
+npm run release:check
 bash scripts/validate.sh
 ```
 
