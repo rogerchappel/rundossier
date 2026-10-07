@@ -9,6 +9,8 @@ assert.match(workflow, /strategy:\s*\n\s+fail-fast: false\s*\n\s+matrix:\s*\n\s+
   'CI must use a non-fail-fast Node 20 and 24 matrix');
 assert.match(workflow, /name: Repository hygiene \(Node \$\{\{ matrix\.node \}\}\)/,
   'CI jobs must identify the tested Node version');
+assert.match(workflow, /uses: actions\/checkout@v6(?:\s|$)/,
+  'CI must use the maintained checkout action major');
 assert.match(workflow, /uses: actions\/setup-node@v6\s*\n\s+with:\s*\n\s+node-version: \$\{\{ matrix\.node \}\}\s*\n\s+cache: npm/,
   'setup-node must select each matrix runtime and enable npm caching');
 assert.match(workflow, /npm run release:check(?:\s|$)/,
