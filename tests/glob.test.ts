@@ -17,3 +17,12 @@ test("double-star slash also matches direct children", () => {
   assert.equal(globToRegExp("docs/**/*.md").test("docs/README.md"), true);
   assert.equal(globToRegExp("src/**/*.{ts,js}").test("src/cli.ts"), true);
 });
+
+
+test("matches nested brace alternatives", () => {
+  const regex = globToRegExp("**/*.{ts,{js,mjs}}");
+  assert.equal(regex.test("src/index.ts"), true);
+  assert.equal(regex.test("src/index.js"), true);
+  assert.equal(regex.test("src/index.mjs"), true);
+  assert.equal(regex.test("src/index.cjs"), false);
+});
