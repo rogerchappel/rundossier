@@ -7,8 +7,36 @@ function escapeRegex(value: string): string {
   return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
 }
 
-export function globToRegExp(pattern: string): RegExp {
-  let source = "^";
+function parseBrace(pattern: string, start: number): { source: string; end: number } | null {
+  let depth = 0;
+  for (let i = start; i < pattern.length; i += 1) {
+    if (pattern[i] === "{") depth += 1;
+    else if (pattern[i] === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        const content = pattern.slice(start + 1, i);
+        const alternatives: string[] = [];
+        let partStart = start + 1;
+        let nestedDepth = 0;
+        for (let j = start + 1; j < i; j += 1) {
+          if (pattern[j] === "{") nestedDepth += 1;
+          else if (pattern[j] === "}") nestedDepth -= 1;
+          else if (pattern[j] === "," && nestedDepth === 0) {
+            alternatives.push(pattern.slice(partStart, j));
+            partStart = j + 1;
+          }
+        }
+        if (alternatives.length === 0) return null;
+        alternatives.push(pattern.slice(partStart, i));
+        return { source: `(?:${alternatives.map(globFragmentToRegex).join("|")})`, end: i };
+      }
+    }
+  }
+  return null;
+}
+
+function globFragmentToRegex(pattern: string): string {
+  let source = "";
   for (let i = 0; i < pattern.length; i += 1) {
     const char = pattern[i];
     const next = pattern[i + 1];
@@ -16,16 +44,19 @@ export function globToRegExp(pattern: string): RegExp {
       const after = pattern[i + 2];
       if (after === "/") { source += "(?:.*/)?"; i += 2; }
       else { source += ".*"; i += 1; }
-    }
-    else if (char === "*") source += "[^/]*";
+    } else if (char === "*") source += "[^/]*";
     else if (char === "?") source += "[^/]";
     else if (char === "{") {
-      const end = pattern.indexOf("}", i);
-      if (end === -1) source += "\\{";
-      else { source += `(${pattern.slice(i + 1, end).split(",").map(escapeRegex).join("|")})`; i = end; }
+      const brace = parseBrace(pattern, i);
+      if (brace) { source += brace.source; i = brace.end; }
+      else source += "\\{";
     } else source += escapeRegex(char);
   }
-  return new RegExp(`${source}$`);
+  return source;
+}
+
+export function globToRegExp(pattern: string): RegExp {
+  return new RegExp(`^${globFragmentToRegex(pattern)}$`);
 }
 
 async function walk(root: string, dir = root): Promise<string[]> {
