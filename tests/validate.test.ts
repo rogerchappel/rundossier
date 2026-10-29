@@ -6,6 +6,18 @@ test("accepts the default config", () => {
   assert.doesNotThrow(() => validateConfig(DEFAULT_CONFIG));
 });
 
+test("rejects output directories outside the project root", () => {
+  for (const outputDir of ["../outside", "nested/../../outside", "/tmp/outside", "C:\\outside", "\\\\server\\share"]) {
+    assert.throws(() => validateConfig({ ...DEFAULT_CONFIG, outputDir }), /config\.outputDir must stay within the project root/);
+  }
+});
+
+test("accepts contained output directories", () => {
+  for (const outputDir of [".rundossier/out", "reports", "nested/../reports", "..cache/reports"]) {
+    assert.doesNotThrow(() => validateConfig({ ...DEFAULT_CONFIG, outputDir }));
+  }
+});
+
 test("rejects invalid redaction patterns", () => {
   assert.throws(() => validateConfig({ ...DEFAULT_CONFIG, redactions: [{ name: "bad", pattern: "[" }] }));
 });
