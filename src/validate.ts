@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { RunDossierConfig } from "./types.js";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -20,6 +21,14 @@ export function validateConfig(config: unknown): asserts config is RunDossierCon
   requireStringArray(config.collect.artifacts, "config.collect.artifacts");
   if (!Array.isArray(config.redactions)) throw new Error("config.redactions must be an array");
   if (typeof config.outputDir !== "string" || config.outputDir.length === 0) throw new Error("config.outputDir must be a non-empty string");
+  const outputDir = config.outputDir.replaceAll("\\", "/");
+  if (path.posix.isAbsolute(outputDir) || path.win32.isAbsolute(config.outputDir)) {
+    throw new Error("config.outputDir must stay within the project root");
+  }
+  const normalizedOutputDir = path.posix.normalize(outputDir);
+  if (normalizedOutputDir === ".." || normalizedOutputDir.startsWith("../")) {
+    throw new Error("config.outputDir must stay within the project root");
+  }
   if (!Number.isInteger(config.snippetLines) || (config.snippetLines as number) < 1) throw new Error("config.snippetLines must be a positive integer");
   for (const rule of config.redactions) {
     if (!isRecord(rule)) throw new Error("config.redactions must contain only objects");
