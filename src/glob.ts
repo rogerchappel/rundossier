@@ -65,6 +65,8 @@ async function walk(root: string, dir = root): Promise<string[]> {
   for (const entry of entries) {
     if (entry.isDirectory() && SKIP_DIRS.has(entry.name)) continue;
     const full = path.join(dir, entry.name);
+    // Dirent.isDirectory() is false for symbolic links, so traversal remains
+    // confined to real directory entries and cannot escape or recurse through cycles.
     if (entry.isDirectory()) files.push(...await walk(root, full));
     if (entry.isFile()) files.push(path.relative(root, full).split(path.sep).join("/"));
   }
