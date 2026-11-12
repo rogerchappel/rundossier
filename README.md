@@ -142,3 +142,20 @@ Issues and PRs are welcome. Please include the command you ran, expected behavio
 ## License
 
 MIT
+
+### Import JUnit results
+
+JUnit XML can be parsed and added to a dossier programmatically with the
+`parseJUnit` and `importJUnit` exports. The importer accepts aggregate
+`<testsuites>` or individual `<testsuite>` reports, rejects malformed counts,
+and does not resolve external entity declarations:
+
+```ts
+import { importJUnit, parseJUnit } from "rundossier";
+
+const summary = parseJUnit(xmlReport);
+const updatedState = importJUnit(existingState, xmlReport, "test-results/junit.xml");
+```
+
+Imported results appear as a synthetic command record; failures or errors
+produce a non-zero exit code in that evidence entry.
