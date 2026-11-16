@@ -18,4 +18,13 @@ assert.match(workflow, /npm run release:check(?:\s|$)/,
 assert.match(manifest.scripts?.test ?? '', /node --test dist\/tests\/\*\.test\.js/,
   'test discovery must remain compatible with Node 20');
 
+assert.match(manifest.scripts?.test ?? '', /^node --test dist\/tests\/\*\.test\.js$/,
+  'test must use the release check compiled output instead of rebuilding');
+assert.match(manifest.scripts?.smoke ?? '', /^bash scripts\/smoke\.sh$/,
+  'smoke must use the release check compiled output instead of rebuilding');
+assert.match(manifest.scripts?.['package:smoke'] ?? '', /^node scripts\/package-smoke\.mjs$/,
+  'package smoke must use the release check compiled output instead of rebuilding');
+assert.match(manifest.scripts?.['release:check'] ?? '', /^npm run build && npm test && npm run smoke && npm run package:smoke/,
+  'release check must compile once before tests and smoke checks');
+
 console.log('CI runtime matrix contract is valid');
