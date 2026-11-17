@@ -23,6 +23,7 @@ first release, the global install command will be `npm install -g rundossier`.
 rundossier init
 rundossier run -- npm test
 rundossier collect
+rundossier import-github-summary ./job-summary.md
 rundossier status
 rundossier report
 open .rundossier/out/dossier.html
@@ -159,3 +160,19 @@ const updatedState = importJUnit(existingState, xmlReport, "test-results/junit.x
 
 Imported results appear as a synthetic command record; failures or errors
 produce a non-zero exit code in that evidence entry.
+
+### Import GitHub Actions job summaries
+
+Save or copy a job-summary Markdown file that contains a heading and `Total`,
+`Passed`, `Failed`, `Skipped`, and `Cancelled` counts (as produced by a test
+reporting step), then import it into the current project's dossier:
+
+```bash
+rundossier import-github-summary ./job-summary.md
+rundossier report
+```
+
+The importer validates that counts are non-negative and add up to `Total`.
+The resulting synthetic command record is included in JSON, Markdown, and HTML
+reports; failed or cancelled checks have a non-zero exit status. The import
+reads only the named local file and makes no GitHub API calls.
