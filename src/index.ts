@@ -10,3 +10,4 @@ export * from "./types.js";
 export * from "./summary.js";
 export * from "./validate.js";
 export * from "./junit.js";
+export * from "./github-summary.js";

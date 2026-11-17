@@ -3,15 +3,17 @@ import process from "node:process";
 import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { collectFiles } from "./collect.js";
-import { initProject, loadState } from "./fs.js";
+import { initProject, loadState, saveState } from "./fs.js";
 import { writeReports } from "./report.js";
 import { runCommand } from "./run.js";
 import { summarizeState } from "./summary.js";
+import { importGitHubSummary } from "./github-summary.js";
+import { readFile } from "node:fs/promises";
 
 const VERSION = "0.1.0";
 
 function usage(): string {
-  return `rundossier ${VERSION}\n\nUsage:\n  rundossier init\n  rundossier run -- <cmd> [args...]\n  rundossier collect\n  rundossier status\n  rundossier report\n\nLocal-first run evidence packets for handoffs.`;
+  return `rundossier ${VERSION}\n\nUsage:\n  rundossier init\n  rundossier run -- <cmd> [args...]\n  rundossier collect\n  rundossier import-github-summary <markdown-file>\n  rundossier status\n  rundossier report\n\nLocal-first run evidence packets for handoffs.`;
 }
 
 function parseRunArgs(args: string[]): string[] {
@@ -31,6 +33,14 @@ export async function main(argv = process.argv.slice(2), cwd = process.cwd()): P
       return evidence.exitCode ?? 1;
     }
     if (command === "collect") { console.log(`Collected ${(await collectFiles(cwd)).length} files`); return 0; }
+    if (command === "import-github-summary") {
+      if (args.length !== 1) throw new Error("Usage: rundossier import-github-summary <markdown-file>");
+      const source = args[0]!;
+      const state = await loadState(cwd);
+      await saveState(cwd, importGitHubSummary(state, await readFile(source, "utf8"), source));
+      console.log(`Imported GitHub Actions summary from ${source}`);
+      return 0;
+    }
     if (command === "status") {
       const summary = summarizeState(await loadState(cwd));
       console.log([
