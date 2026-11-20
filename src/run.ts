@@ -19,22 +19,22 @@ export async function runCommand(root: string, command: string[]): Promise<Comma
   child.stdout.on("data", (chunk: Buffer) => {
     const text = stdoutDecoder.write(chunk);
     stdout += text;
-    process.stdout.write(text);
+    process.stdout.write(redactStrings(text, config.redactions));
   });
   child.stderr.on("data", (chunk: Buffer) => {
     const text = stderrDecoder.write(chunk);
     stderr += text;
-    process.stderr.write(text);
+    process.stderr.write(redactStrings(text, config.redactions));
   });
   child.stdout.on("end", () => {
     const text = stdoutDecoder.end();
     stdout += text;
-    process.stdout.write(text);
+    process.stdout.write(redactStrings(text, config.redactions));
   });
   child.stderr.on("end", () => {
     const text = stderrDecoder.end();
     stderr += text;
-    process.stderr.write(text);
+    process.stderr.write(redactStrings(text, config.redactions));
   });
   const exitCode = await new Promise<number | null>((resolve) => {
     child.on("error", (error: NodeJS.ErrnoException) => {
