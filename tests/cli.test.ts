@@ -111,6 +111,30 @@ test("CLI redacts configured patterns before persisting command argv", async () 
   }
 });
 
+test("CLI redacts configured secrets from live stdout and stderr", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "rundossier-stream-redaction-"));
+  const secret = "stream-secret-fixture";
+  await mkdir(path.join(root, ".rundossier"), { recursive: true });
+  await writeFile(path.join(root, ".rundossier", "config.json"), JSON.stringify({ schemaVersion: 1, redactions: [{ name: "fixture", pattern: secret, replacement: "[REDACTED:fixture]" }] }));
+  const out: string[] = [];
+  const err: string[] = [];
+  const originalOut = process.stdout.write;
+  const originalErr = process.stderr.write;
+  process.stdout.write = ((chunk: string | Uint8Array) => { out.push(String(chunk)); return true; }) as typeof process.stdout.write;
+  process.stderr.write = ((chunk: string | Uint8Array) => { err.push(String(chunk)); return true; }) as typeof process.stderr.write;
+  try {
+    assert.equal(await main(["run", "--", process.execPath, "-e", `process.stdout.write('${secret}'); process.stderr.write('${secret}')`], root), 0);
+  } finally {
+    process.stdout.write = originalOut;
+    process.stderr.write = originalErr;
+  }
+  assert.doesNotMatch(out.join(""), new RegExp(secret));
+  assert.doesNotMatch(err.join(""), new RegExp(secret));
+  const state = JSON.parse(await readFile(path.join(root, ".rundossier", "state.json"), "utf8"));
+  assert.equal(state.commands[0].stdout, "[REDACTED:fixture]");
+  assert.equal(state.commands[0].stderr, "[REDACTED:fixture]");
+});
+
 test("CLI preserves UTF-8 characters split across stdout and stderr chunks", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "rundossier-unicode-streams-"));
   const script = [
