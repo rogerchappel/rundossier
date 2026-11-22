@@ -72,7 +72,7 @@ interrupted writer.
 
 ### `rundossier status`
 
-Prints command, failure, duration, file, artifact, and dirty-git summary counts. It exits non-zero when any captured command failed, which makes it useful in local automation.
+Prints command, failure, duration, file, artifact, and dirty-git summary counts. A command is counted as failed only when it has a known, nonzero exit code; a `null` exit code means the process ended without a reported exit status and is not counted as a confirmed failure. The command exits non-zero when any captured command failed, which makes it useful in local automation.
 
 ### `rundossier report`
 

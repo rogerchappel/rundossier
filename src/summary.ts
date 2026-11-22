@@ -12,7 +12,7 @@ export interface DossierSummary {
 export function summarizeState(state: DossierState): DossierSummary {
   return {
     commands: state.commands.length,
-    failedCommands: state.commands.filter((command) => command.exitCode !== 0).length,
+    failedCommands: state.commands.filter((command) => command.exitCode !== null && command.exitCode !== 0).length,
     totalDurationMs: state.commands.reduce((total, command) => total + command.durationMs, 0),
     files: state.files.filter((file) => file.kind === "file").length,
     artifacts: state.files.filter((file) => file.kind === "artifact").length,
