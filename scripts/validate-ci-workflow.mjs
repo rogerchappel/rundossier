@@ -11,8 +11,12 @@ assert.match(workflow, /name: Repository hygiene \(Node \$\{\{ matrix\.node \}\}
   'CI jobs must identify the tested Node version');
 assert.match(workflow, /uses: actions\/checkout@v6(?:\s|$)/,
   'CI must use the maintained checkout action major');
-assert.match(workflow, /uses: actions\/setup-node@v6\s*\n\s+with:\s*\n\s+node-version: \$\{\{ matrix\.node \}\}\s*\n\s+cache: npm/,
-  'setup-node must select each matrix runtime and enable npm caching');
+assert.match(workflow, /uses: actions\/setup-node@v6\s*\n\s+with:\s*\n\s+node-version: \$\{\{ matrix\.node \}\}\s*\n\s+cache: npm\s*\n\s+cache-dependency-path: package-lock\.json/,
+  'setup-node must select each matrix runtime and cache against the committed npm lockfile');
+assert.ok(workflow.includes('cache-dependency-path: package-lock.json'),
+  'CI npm cache dependency path must match the committed lockfile');
+assert.match(workflow, /run: npm ci(?:\s|$)/,
+  'CI must install dependencies reproducibly from the npm lockfile');
 assert.match(workflow, /npm run release:check(?:\s|$)/,
   'CI must run the complete repository release check');
 assert.match(manifest.scripts?.test ?? '', /node --test dist\/tests\/\*\.test\.js/,
