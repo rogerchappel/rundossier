@@ -28,3 +28,14 @@ test("redaction preserves JSON string structure", () => {
   const json = JSON.stringify({ stdout: "token=super-secret\n" });
   assert.doesNotThrow(() => JSON.parse(redactText(json, DEFAULT_CONFIG.redactions)));
 });
+
+
+test("redacted object keys never silently discard values", () => {
+  const rules = [{ name: "key", pattern: "secret|hidden", replacement: "" }];
+  assert.deepEqual(redactStrings({ secret: "first", hidden: "second", safe: "third" }, rules), {
+    secret: "first", hidden: "second", safe: "third",
+  });
+  assert.deepEqual(redactStrings({ secret: "first", hidden: "second" }, [
+    { name: "key", pattern: "secret|hidden", replacement: "same" },
+  ]), { same: "first", hidden: "second" });
+});
