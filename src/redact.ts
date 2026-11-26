@@ -13,7 +13,15 @@ export function redactStrings<T>(input: T, rules: RedactionRule[]): T {
   if (typeof input === "string") return redactText(input, rules) as T;
   if (Array.isArray(input)) return input.map((value) => redactStrings(value, rules)) as T;
   if (input && typeof input === "object") {
-    return Object.fromEntries(Object.entries(input).map(([key, value]) => [redactText(key, rules), redactStrings(value, rules)])) as T;
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(input)) {
+      const redactedKey = redactText(key, rules);
+      const safeKey = redactedKey.length > 0 && !Object.hasOwn(result, redactedKey)
+        ? redactedKey
+        : key;
+      result[safeKey] = redactStrings(value, rules);
+    }
+    return result as T;
   }
   return input;
 }
